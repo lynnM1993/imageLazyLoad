@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .space_css {
+            width: 200%;
+            height: 2000px;
+        }
+    </style>
+</head>
+<body>
+<!--<img data-src="../images/a1.png" alt="">-->
+<!--<div class="space_css"></div>-->
+<div>
+    <div style="overflow: auto;height:200px;width: 200px;background: #d00;white-space:nowrap">
+        <div class="space_css" style="display:inline-block;"></div>
+        <img data-src="../images/msld.jpg" alt="">
+    </div>
+</div>
+<img data-src="../images/a2.png" alt="">
+<div class="space_css"></div><img data-src="../images/a1.png" alt="">
+<div class="space_css"></div>
+<img data-src="../images/a2.png" alt="">
+<div class="space_css"></div>
+<img data-src="../images/a3.png" alt="">
+<div class="space_css"></div>
+<img data-src="../images/a4.png" alt="">
+<div class="space_css"></div>
+<img data-src="../images/a5.png" alt="">
+<div class="space_css"></div>
+<img data-src="../images/msld.jpg" alt="">
+<div class="space_css"></div>
+<script>
+
+    class Observers {
+        constructor() {
+            this.observersList = [];
+        }
+
+        add(obj) {
+            this.observersList.push(obj)
+        }
+
+        remove(index) {
+            this.observersList.splice(index, 1)
+        }
+
+        get(index) {
+            if (index < -1 || index > this.observersList.length - 1) {
+                throw  error('index is not defined')
+            }
+            return this.observersList[index]
+        }
+
+        count() {
+            return this.observersList.length
+        }
+
+        indexOf(obj, startIndex) {
+            var i = startIndex;
+            while (i < this.observersList.length - 1) {
+                if (obj === this.observersList[i]) {
+                    return i
+                }
+                i++;
+            }
+            return -1
+        }
+
+    }
+    class Subject {
+        constructor() {
+            this.observer = new Observers();
+        }
+        addObserver(observer) {
+            this.observer.add(observer)
+        }
+        removeObserver(observer) {
+            this.observer.remove(this.observers.indexOf(observer), 0)
+        }
+        notify(context) {
+            var that = this
+            let count = this.observer.count();
+            for (var i = 0; i < count; i++) {
+                let el = this.observer.get(i)
+                el.update(el,context)
+            }
+        }
+    }
+
+    class LazyLoad extends Subject {
+        constructor({loadingImage} = config) {
+            super({loadingImage})
+            this.config = {
+                loadingImage
+            }
+        }
+
+        addImage() {
+            var {loadingImage} = this.config;
+            let imgList = document.getElementsByTagName('img');
+            for (var i = 0; i < imgList.length; i++) {
+                var item = imgList[i];
+                item.active = false;
+                item.src = loadingImage;
+                item.update = function () {
+                    LazyLoad.update.apply(this,arguments);
+                }
+                var el = this.getScrollEl(item);
+                item.scrollEl = el;
+                this.watch(el)
+                item.update(item, 0)
+                this.addObserver(item)
+            }
+            return this
+        }
+        static update(el, context) {
+            var clientObj = el.getBoundingClientRect();
+            if(
+                (clientObj.top <=  (el.scrollEl.clientHeight || window.innerHeight) + 50 && clientObj.bottom >= -50)
+                &&
+                getComputedStyle(el).display !== "none"
+                &&
+                clientObj.left <=  (el.scrollEl.clientWidth || window.innerWidth) + 50  && clientObj.right >= -50
+
+            ) {
+                if(!el.active) {
+                    el.src = el.dataset.src
+                }
+            }
+
+        }
+        getScrollEl(el) {
+            if(el === document || el === window || el.nodeType === 9) {
+                return el
+            }
+            let overflow = getComputedStyle(el).overflow
+            if(overflow !== 'scroll' && overflow !== 'auto') {
+                return this.getScrollEl(el.parentNode)
+            }
+            return el
+        }
+
+        watch(el) {
+            var that = this
+            el.onscroll = throttling(function (e) {
+                that.notify(el)
+            }, 200)
+        }
+    }
+
+
+    /// 增加前缘
+    var throttling = (fn, wait, immediate) => {
+        let timer, timeStamp = 0;
+        let context, args;
+
+        let run = () => {
+            clearTimeout(timer)
+            timer = setTimeout(() => {
+                if (!immediate) {
+                    fn.apply(context, args);
+                }
+                clearTimeout(timer);
+                timer = null;
+            }, wait);
+        }
+
+        return function () {
+            context = this;
+            args = arguments;
+            if (!timer) {
+                // console.log("throttle, set");
+                if (immediate) {
+                    fn.apply(context, args);
+                }
+                run();
+            } else {
+                // console.log("throttle, ignore");
+            }
+        }
+
+    }
+
+
+
+    // 使用lazyLoad
+    document.addEventListener("DOMContentLoaded", function (e) {
+        var myWorker = new Worker('../js/workers.js');
+
+        myWorker.onmessage = function(oEvent) {
+            console.log('Worker said : ' + oEvent.data);
+        };
+
+        myWorker.postMessage('ali');
+
+
+        if(window.imgObserver){
+            return
+        }
+        window.imgObserver = new LazyLoad({
+            loadingImage: '../images/b1.jpg'
+        }).addImage()
+    })
+
+
+</script>
+</body>
+</html>

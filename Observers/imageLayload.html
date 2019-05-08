@@ -17,13 +17,18 @@
 <!--<img data-src="../images/a1.png" alt="">-->
 <!--<div class="space_css"></div>-->
 <div>
-    <div style="overflow: auto;height:200px;width: 200px;background: #d00;white-space:nowrap">
+    <div style="overflow: auto;height:600px;width: 600px;background: #d00;white-space:nowrap">
         <div class="space_css" style="display:inline-block;"></div>
         <img data-src="../images/msld.jpg" alt="">
+        <div style="overflow: auto; height: 100px;width: 100px;">
+            <img data-src="../images/msld.jpg" alt="">
+        </div>
+
     </div>
 </div>
 <img data-src="../images/a2.png" alt="">
-<div class="space_css"></div><img data-src="../images/a1.png" alt="">
+<div class="space_css"></div>
+<img data-src="../images/a1.png" alt="">
 <div class="space_css"></div>
 <img data-src="../images/a2.png" alt="">
 <div class="space_css"></div>
@@ -122,11 +127,11 @@
         static update(el, context) {
             var clientObj = el.getBoundingClientRect();
             if(
-                (clientObj.top <=  (el.scrollEl.clientHeight || window.innerHeight) + 50 && clientObj.bottom >= -50)
+                (clientObj.top <=   window.innerHeight && clientObj.bottom >= 0)
                 &&
                 getComputedStyle(el).display !== "none"
                 &&
-                clientObj.left <=  (el.scrollEl.clientWidth || window.innerWidth) + 50  && clientObj.right >= -50
+                clientObj.left <=  window.innerWidth  && clientObj.right >= 0
 
             ) {
                 if(!el.active) {
@@ -148,9 +153,17 @@
 
         watch(el) {
             var that = this
-            el.onscroll = throttling(function (e) {
+            if(el.onscroll) {
+                return
+            }
+            el.onscroll =throttling(function (e) {
                 that.notify(el)
             }, 200)
+            if(el === document || el === window || el.nodeType === 9) {
+
+            }else {
+                this.watch(this.getScrollEl(el.parentNode))
+            }
         }
     }
 
@@ -159,7 +172,6 @@
     var throttling = (fn, wait, immediate) => {
         let timer, timeStamp = 0;
         let context, args;
-
         let run = () => {
             clearTimeout(timer)
             timer = setTimeout(() => {
@@ -191,15 +203,6 @@
 
     // 使用lazyLoad
     document.addEventListener("DOMContentLoaded", function (e) {
-        var myWorker = new Worker('../js/workers.js');
-
-        myWorker.onmessage = function(oEvent) {
-            console.log('Worker said : ' + oEvent.data);
-        };
-
-        myWorker.postMessage('ali');
-
-
         if(window.imgObserver){
             return
         }

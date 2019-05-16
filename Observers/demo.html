@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        ul, li {
+            list-style: none;
+        }
+
+        #myUl {
+            width: 800px;
+        }
+
+        #myUl li {
+            width: 98px;
+            height: 98px;
+            float: left;
+            border: 1px solid #ccc;
+            text-align: center;
+            line-height: 98px;
+        }
+    </style>
+</head>
+<body>
+<button id="startBtn">
+    开始
+</button>
+<ul id="myUl">
+
+</ul>
+<script src="../js/jquery.min.js"></script>
+<script>
+    var arr = [];
+    for (var i = 0; i < 56; i++) {
+        arr.push(i)
+    }
+    var html = ''
+    arr.map(m => {
+        html += `<li class="my-li">${m}</li>`
+    })
+    $('#myUl').html(html)
+
+</script>
+<script src="./demo.js"></script>
+<script>
+    var rollCall = new RollCall()
+    var startBtn = document.querySelector('#startBtn');
+    var length = rollCall.observers.count()
+    var arrLi = [];
+    for (var i = 0; i < length; i++) {
+        arrLi.push(i)
+    }
+    function arrayRandom (arr ) {
+        arr.sort((m,n) => {
+            return Math.random() - 0.5
+        })
+        return arr
+    }
+    var timer = null
+    var result = [];
+    startBtn.addEventListener('click', function () {
+        var arr = [...arrLi];
+        var i = 0
+        clearInterval(timer)
+        timer = setInterval(() => {
+            i += 600;
+            var arrR = arrayRandom(arr);
+            rollCall.notifiy(arrR.slice(0,5))
+            if(i > 20000){
+                clearInterval(timer)
+                rollCall.notifiy2()
+                arrLi = arrayRandom(arrLi)
+                var context = arrLi.splice(0, 5)
+                result = [...result,...context]
+                rollCall.notifiy(result)
+            }
+
+        },i*5)
+    })
+</script>
+</body>
+</html>
